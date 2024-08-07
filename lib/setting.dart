@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tic_fun_toc/menu.dart';
@@ -40,21 +41,21 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MenuScreen(),
-              ),
-            );
-          },
-          child: Icon(Icons.arrow_back, color: Colors.white),
-        ),
+        // leading: InkWell(
+        //   onTap: () {
+        //     Navigator.pop(context);
+        //     Navigator.pushReplacement(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => MenuScreen(),
+        //       ),
+        //     );
+        //   },
+        //   child: Icon(Icons.arrow_back, color: Colors.white),
+        // ),
         elevation: 0, // Remove the shadow
         backgroundColor: Colors.transparent,
-        title: Text(
+        title: const Text(
           'Settings',
           style: TextStyle(
               fontFamily: 'Hello Graduation',
@@ -65,49 +66,26 @@ class SettingsScreen extends StatelessWidget {
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: PopScope(
-        onPopInvoked: (didPop) {
-          WidgetsBinding.instance.addPostFrameCallback(
-            (timeStamp) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MenuScreen(),
-                ),
-              );
-            },
-          );
-        },
-        // onPopInvokedWithResult: (didPop, result) {
-        //   // Navigator.pop(context);
-        //   Navigator.pushReplacement(
-        //     context,
-        //     MaterialPageRoute(
-        //       builder: (context) => MenuScreen(),
-        //     ),
-        //   );
-        // },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 20),
-              _buildSettingItem(
-                title: 'Music',
-                description: 'Turn on or off',
-                value: context.watch<MusicSettings>().isMusicOn,
-                onChanged: (value) => _toggleMusic(context, value),
-              ),
-              SizedBox(height: 20),
-              // Add Reset Game button
-              ElevatedButton(
-                onPressed: () => _resetGame(context),
-                child: Text('Reset Game'),
-              )
-              // Add more settings here
-            ],
-          ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            _buildSettingItem(
+              title: 'Music',
+              description: 'Turn on or off',
+              value: context.watch<MusicSettings>().isMusicOn,
+              onChanged: (value) => _toggleMusic(context, value),
+            ),
+            const SizedBox(height: 20),
+            // Add Reset Game button
+            ElevatedButton(
+              onPressed: () => _resetGame(context),
+              child: const Text('Reset Game'),
+            )
+            // Add more settings here
+          ],
         ),
       ),
     );
@@ -117,8 +95,8 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Reset Game'),
-        content: Text(
+        title: const Text('Reset Game'),
+        content: const Text(
             'Are you sure you want to reset the game? This will reset your coins and level progress.'),
         actions: [
           TextButton(
@@ -128,7 +106,7 @@ class SettingsScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               resetGame(context);
-              Navigator.pop(context);
+              SystemNavigator.pop();
             },
             child: Text('Reset'),
           ),

@@ -1,16 +1,19 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flame_audio/flame_audio.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tic_fun_toc/ad_helper.dart';
 import 'package:tic_fun_toc/play.dart';
 import 'package:tic_fun_toc/setting.dart';
 import 'package:tic_fun_toc/utils.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-// import 'about.dart';
-// import 'choose.dart';
+
+
 
 class MenuScreen extends StatefulWidget {
+  const MenuScreen({super.key});
+
   @override
   _MenuScreenState createState() => _MenuScreenState();
 }
@@ -19,21 +22,71 @@ class _MenuScreenState extends State<MenuScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController titleAnimationController;
   late Animation<double> titleAnimation;
-  // bool _isRiveLoading = false;
-  late BannerAd bannerAd;
   bool isLoaded = false;
-
+  late BannerAd bannerAd;
+  int adCount = 0;
+  String adHintUrl = "";
+  String userId = "";
   @override
   void initState() {
     super.initState();
+    initMenuPrefs();
+    initbannerAd();
     WidgetsBinding.instance.addObserver(this);
     setupAnimation();
-    initbannerAd();
 
     final musicSettings = Provider.of<MusicSettings>(context, listen: false);
 
     if (musicSettings.isMusicOn) {
       _playBackgroundMusic();
+    }
+  }
+
+  Future<void> initMenuPrefs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      userId = prefs.getString('user_id')!;
+
+    });
+  }
+
+
+
+  Future<void> countAd() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if (prefs.containsKey('adCount')) {
+      setState(() {
+        adCount = prefs.getInt('adCount')!;
+      });
+
+      if (adCount + 1 == 2) {
+        setState(() {
+          adHintUrl = adHintUrl2;
+        });
+      }
+      if (adCount + 1 == 3) {
+        setState(() {
+          adHintUrl = adHintUrl3;
+        });
+      }
+      if (adCount + 1 == 4) {
+        setState(() {
+          adHintUrl = adHintUrl4;
+        });
+      }
+      if (adCount + 1 == 5) {
+        setState(() {
+          adHintUrl = adHintUrl5;
+        });
+      }
+    } else {
+      if (adCount + 1 == 1) {
+        setState(() {
+          adHintUrl = adHintUrl1;
+        });
+      }
     }
   }
 
@@ -44,13 +97,11 @@ class _MenuScreenState extends State<MenuScreen>
       listener: BannerAdListener(
         onAdLoaded: (ad) {
           setState(() {
+            bannerAd = ad as BannerAd;
             isLoaded = true;
           });
         },
         onAdFailedToLoad: (ad, error) {
-          print(error.code);
-          print(error.domain);
-          print(error.message);
           ad.dispose();
           print('error');
         },
@@ -64,7 +115,7 @@ class _MenuScreenState extends State<MenuScreen>
   void setupAnimation() {
     titleAnimationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 1),
+      duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
 
     titleAnimation = Tween<double>(begin: 0, end: 20).animate(
@@ -93,8 +144,9 @@ class _MenuScreenState extends State<MenuScreen>
   void dispose() {
     titleAnimationController.dispose();
     WidgetsBinding.instance.removeObserver(this);
+    bannerAd.dispose();
+    isLoaded = false;
     super.dispose();
-    // _bannerAd.dispose();
   }
 
   @override
@@ -110,114 +162,165 @@ class _MenuScreenState extends State<MenuScreen>
 
   @override
   Widget build(BuildContext context) {
+    // fetchLvl1Locked();
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Image.asset(
-            'assets/theme.gif',
-            fit: BoxFit.cover,
-            // width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-          ),
-          // if (!_isRiveLoading)
-          //   RiveAnimation.asset(
-          //     'assets/riv.riv',
-          //     fit: BoxFit.cover,
-          //     alignment: Alignment.center,
-          //     antialiasing: true,
-          //   ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 20),
-                AnimatedTextKit(
-                  animatedTexts: [
-                    WavyAnimatedText(
-                      'Tic Fun Toc!',
-                      textStyle: TextStyle(
-                        fontFamily: 'Hello Graduation',
-                        fontSize: 50,
-                        color: Colors.white,
+        body: Stack(
+          children: [
+
+            SingleChildScrollView(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      height: 50,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 8),
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      // height: 70,
+                      decoration: BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Text(
+                        titleBox,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'Hello Graduation',
+                          fontSize: 23,
+                          color: Colors.white,
+                        ),
                       ),
-                      speed: Duration(milliseconds: 200),
                     ),
-                  ],
-                ),
-                SizedBox(height: 50),
-                CustomButton(
-                  onPressed: () {
-                    FlameAudio.play('button.mp3');
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => PlayGamePage()));
-                  },
-                  label: 'Play',
-                ),
-                // SizedBox(height: 50),
-                // CustomButton(
-                //   onPressed: () {
-                //     FlameAudio.play('button.mp3');
-                //     Navigator.push(context,
-                //         MaterialPageRoute(builder: (_) => ModeScreen()));
-                //   },
-                //   label: 'Mode',
-                // ),
-                SizedBox(height: 20),
-                CustomButton(
-                  onPressed: () {
-                    FlameAudio.play('button.mp3');
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => SettingsScreen()));
-                  },
-                  label: 'Settings',
-                ),
-                SizedBox(height: 20),
-                if (objlive)
-                  Container(
-                    width: 180,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(
-                          25), // Adjust the radius as needed
+                    const SizedBox(height: 60),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(
+                            20), // Adjust the radius as needed
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8), // Adjust padding as needed
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        'User Id: $userId',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Hello Graduation',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w200),
+                      ),
                     ),
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 10), // Adjust padding as needed
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/images/coin.png',
-                          width: 33,
-                        ),
-                        SizedBox(
-                          width: 8,
-                        ),
-                        Text(
-                          gameCoins.toString(),
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Hello Graduation',
-                              fontSize: 25,
-                              fontWeight: FontWeight.w200),
+                    const SizedBox(height: 20),
+                    AnimatedTextKit(
+                      animatedTexts: [
+                        WavyAnimatedText(
+                          'Tic Fun Toc!',
+                          textStyle: const TextStyle(
+                            fontFamily: 'Hello Graduation',
+                            fontSize: 50,
+                            color: Colors.white,
+                          ),
+                          speed: const Duration(milliseconds: 200),
                         ),
                       ],
                     ),
-                  ),
-              ],
+                    const SizedBox(height: 50),
+                    CustomButton(
+                      onPressed: () {
+                        FlameAudio.play('button.mp3');
+
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const PlayGamePage()));
+                      },
+                      label: 'Play',
+                    ),
+                    const SizedBox(height: 20),
+                    CustomButton(
+                      onPressed: () {
+                        FlameAudio.play('button.mp3');
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => SettingsScreen()));
+                      },
+                      label: 'Settings',
+                    ),
+                    const SizedBox(height: 20),
+                    CustomButton(
+                        onPressed: () async {
+                          await countAd();
+
+                          if (adCount == 5) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Hint Unlocked'),
+                                content: Text(hintContent),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Hint Locked'),
+                                content: Text(
+                                    'Watch ${5 - adCount} ads to unlock hint.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () async {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/tracking',
+                                        arguments: {
+                                          "link": adHintUrl,
+                                          "adCountTemp": adCount.toString(),
+                                          "seconds": "10"
+                                        },
+                                      );
+                                    },
+                                    child: const Text('Watch Ad'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        },
+                        label: 'Hint'),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: isLoaded
-          ? SizedBox(
-              height: bannerAd.size.height.toDouble(),
-              width: bannerAd.size.width.toDouble(),
-              child: AdWidget(ad: bannerAd),
-            )
-          : const SizedBox(),
-    );
+          ],
+        ),
+        bottomNavigationBar: isLoaded
+            ? SizedBox(
+                height: bannerAd.size.height.toDouble(),
+                width: bannerAd.size.width.toDouble(),
+                child: AdWidget(ad: bannerAd),
+              )
+            : const SizedBox()
+        );
   }
 }
 
@@ -226,10 +329,10 @@ class CustomButton extends StatefulWidget {
   final String label;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.label,
-  }) : super(key: key);
+  });
 
   @override
   _CustomButtonState createState() => _CustomButtonState();
@@ -246,7 +349,7 @@ class _CustomButtonState extends State<CustomButton> {
       onTapCancel: () => setState(() => isPressed = false),
       onTap: widget.onPressed,
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 100),
+        duration: const Duration(milliseconds: 100),
         width: 200,
         height: 60,
         decoration: BoxDecoration(
@@ -256,14 +359,14 @@ class _CustomButtonState extends State<CustomButton> {
             BoxShadow(
               color: Colors.black.withOpacity(0.3),
               blurRadius: 5,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Center(
           child: Text(
             widget.label,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Hello Graduation',
               fontSize: 32,
               fontWeight: FontWeight.bold,
